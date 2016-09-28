@@ -13,11 +13,12 @@
 			"minimum_hole_size": 500000.0,
 			"simplification": 0.1,
 			"size_fill_limits": {
-				"1000000": 0.5,
-				"3000000": 0.25,
-				"5000000": 0
+				"0.5": 1000000,
+				"0.25": 3000000,
+				"0": 5000000,
 			}
 		}
+		// DONT FORGET TO SWITCH THIS
 		// "9": {
 		// 	"feature_skip": ["VL"],
 		// 	"minimum_hole_size": 76215.0,

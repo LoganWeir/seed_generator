@@ -6,7 +6,7 @@ def zoom_test(polygon, size_fill_hash = {})
 	test = 0
 	polygon_fill = polygon.area/polygon.envelope.area
 	for key, value in size_fill_hash
-		if polygon.area > key.to_f && polygon_fill > value
+		if polygon.area > value && polygon_fill > key.to_f
 			test += 1
 		end
 	end
