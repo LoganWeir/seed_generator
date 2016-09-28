@@ -113,7 +113,7 @@ map_data.each.with_index(1) do |item, index|
 				color_hash[item['properties']['LIQ']], 
 				zoom_level, simplfied_poly)
 
-		end
+		
 	end
 end
 
