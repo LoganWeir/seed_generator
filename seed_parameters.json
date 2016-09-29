@@ -8,6 +8,7 @@
 	"VH": "#a50f15"
 	},
 	"zoom_parameters": {
+		// TESTED
 		"8": {
 			"feature_skip": ["VL"],
 			"minimum_hole_size": 500000.0,
