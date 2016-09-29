@@ -6,10 +6,12 @@ require 'json'
 require 'trollop'
 require 'rgeo/geo_json'
 require 'rgeo'
-require 'seed_factory'
-require 'projection_factory'
 # For pretty printing, if needed
 require 'pry'
+
+require 'seed_factory'
+require 'projection_factory'
+
 
 
 # Set options outside of ARGV
