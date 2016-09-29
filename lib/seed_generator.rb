@@ -81,23 +81,26 @@ feature_array = []
 factory = RGeo::Geographic.simple_mercator_factory(:srid => 4326)
 
 
-# Makes Testing Quicker
-test_map_data = map_data.each[0..1000]
-
-
 # Begin iterating through data
 map_data.each.with_index(1) do |item, index|
 
 	# # Good for monitoring progress
 	# puts "Starting item ##{index}! Left to go: #{(map_data.length - index)}"
 
-	if quat_id == 7926
+	# Using SF VH polygon that's too big
+	if item['properties']['QUAT_ID'] == 7926
 
 		# Convert data into RGeo, then proper factory
 		rgeo_hash = RGeo::GeoJSON.decode(item['geometry'])
 		geo_data_projection = factory.collection([rgeo_hash])
 
 		puts geo_data_projection[0].exterior_ring.num_points
+
+		# Missing poly = 5896
+		# Richmond, present poly = 2950
+		# so, if num_points > 4000?
+
+
 
 	# zoom_hash.each do |zoom_level, zoom_params|
 
