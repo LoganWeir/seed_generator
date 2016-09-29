@@ -124,7 +124,7 @@ feature_seed += "\t" + "#{feature_array.to_json}" + "\n)\n"
 
 output.write(feature_seed) unless output.nil?
 
-output.close
+output.close unless output.nil?
 
 puts "\a"
 
