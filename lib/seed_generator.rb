@@ -93,31 +93,37 @@ map_data.each.with_index(1) do |item, index|
 
 	zoom_hash.each do |zoom_level, zoom_params|
 
-	 	# Skip if included in feature skip array
-		next if zoom_params['feature_skip'].include?\
-			(item['properties']['LIQ'])
-
-		# Filters out polygons based on size and fill
-		next if zoom_test(geo_data_projection[0], 
-			zoom_params['size_fill_limits']) == false
-
-		# Begin simplification
 		projection = ProjectionFactory.new(geo_data_projection, factory)
 
-		# Filter out holes that you can't see zoomed out
 		projection.hole_deleter(zoom_params['minimum_hole_size'])
 
-		# Simplify to a percentage of the original
 		simplfied_poly = \
 			projection.polygon_simplifier(zoom_params['simplification'])
 
-		# Adding to array
-		feature_array << feature_builder(layer_id, 
+		max_exterior_points = 4000
+
+		chop_test =  polygon_divider(simplfied_poly, max_exterior_points, factory)
+
+		if chop_test[0] == true
+			
+			for polygon in chop_test[1]
+
+				feature_array << feature_builder(layer_id, 
+					color_hash[item['properties']['LIQ']], 
+					zoom_level, polygon)
+
+			end
+
+		else
+
+			# Adding to array
+			feature_array << feature_builder(layer_id, 
 				color_hash[item['properties']['LIQ']], 
 				zoom_level, simplfied_poly)
 
-		
+		end
 	end
+	# end
 end
 
 feature_seed += "\t" + "#{feature_array.to_json}" + "\n)\n"

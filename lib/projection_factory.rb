@@ -1,18 +1,6 @@
 require 'rgeo/geo_json'
 require 'rgeo'
 
-# Test polygon for size and fill at 3 levels
-def zoom_test(polygon, size_fill_hash = {})
-	test = 0
-	polygon_fill = polygon.area/polygon.envelope.area
-	for key, value in size_fill_hash
-		if polygon.area > value && polygon_fill > key.to_f
-			test += 1
-		end
-	end
-	test > 0 ? true : false
-end
-
 
 
 class ProjectionFactory
@@ -79,5 +67,97 @@ class ProjectionFactory
 		final_projection = @factory.collection([polygon])
 
 	end
+
+end
+
+		
+
+# Test polygon for size and fill at 3 levels
+def zoom_test(polygon, size_fill_hash = {})
+	test = 0
+	polygon_fill = polygon.area/polygon.envelope.area
+	for key, value in size_fill_hash
+		if polygon.area > value && polygon_fill > key.to_f
+			test += 1
+		end
+	end
+	test > 0 ? true : false
+end
+
+
+
+
+def quarter_chop(polygon, factory)
+
+	envelope = polygon.envelope
+
+	env_center_coords = envelope.centroid.coordinates
+
+	center_lon = env_center_coords[0]
+	center_lat = env_center_coords[1]
+
+	sub_boxes = []
+
+	for corner in envelope.coordinates[0][0..3]
+
+		corner_lon = corner[0]
+		corner_lat = corner[1]
+
+		point_1 = factory.point(corner_lon, center_lat)
+		point_2 = factory.point(center_lon, center_lat)
+		point_3 = factory.point(center_lon, corner_lat)
+		point_4 = factory.point(corner_lon, corner_lat)
+
+		ring = factory.linear_ring([point_1, point_2, point_3, point_4])
+		box = factory.polygon(ring)
+
+		sub_boxes << box
+
+	end
+
+	sub_boxes
+
+end
+
+
+def polygon_divider(poly_collection, max_exterior_points, factory)
+
+	if poly_collection[0].exterior_ring.num_points > max_exterior_points
+
+		divided_polys = []
+
+		sub_boxes = quarter_chop(poly_collection[0], factory)
+
+		for box in sub_boxes
+
+			poly_chop = box.intersection(poly_collection[0])
+
+			geo_type = poly_chop.geometry_type.type_name
+
+			if geo_type == "Polygon"
+				
+				divided_polys << factory.collection([poly_chop])
+
+			elsif geo_type == "MultiPolygon"
+
+				for single_poly in poly_chop
+
+					divided_polys << factory.collection([single_poly])
+
+				end
+
+			else
+				puts "SOMETHING FUCKED UP, ITS NEITHER POLY NOR MULTIPOLY"
+			end
+
+		end
+
+		return [true, divided_polys]
+
+	else
+
+		return [false]
+
+	end 
 
 end
