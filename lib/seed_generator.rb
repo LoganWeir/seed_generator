@@ -84,6 +84,8 @@ factory = RGeo::Geographic.simple_mercator_factory(:srid => 4326)
 # Begin iterating through data
 map_data.each.with_index(1) do |item, index|
 
+
+
 	# # Good for monitoring progress
 	# puts "Starting item ##{index}! Left to go: #{(map_data.length - index)}"
 
@@ -94,40 +96,60 @@ map_data.each.with_index(1) do |item, index|
 		rgeo_hash = RGeo::GeoJSON.decode(item['geometry'])
 		geo_data_projection = factory.collection([rgeo_hash])
 
-		puts geo_data_projection[0].exterior_ring.num_points
-
+		# puts geo_data_projection[0].exterior_ring.num_points
 		# Missing poly = 5896
 		# Richmond, present poly = 2950
 		# so, if num_points > 4000?
 
+		zoom_hash.each do |zoom_level, zoom_params|
 
+			projection = ProjectionFactory.new(geo_data_projection, factory)
 
-	# zoom_hash.each do |zoom_level, zoom_params|
+			projection.hole_deleter(zoom_params['minimum_hole_size'])
 
-	#  	# Skip if included in feature skip array
-	# 	next if zoom_params['feature_skip'].include?\
-	# 		(item['properties']['LIQ'])
+			simplfied_poly = \
+				projection.polygon_simplifier(zoom_params['simplification'])
 
-	# 	# Filters out polygons based on size and fill
-	# 	next if zoom_test(geo_data_projection[0], 
-	# 		zoom_params['size_fill_limits']) == false
+			if simplfied_poly[0].exterior_ring.num_points > 4000
 
-	# 	# Begin simplification
-	# 	projection = ProjectionFactory.new(geo_data_projection, factory)
+				sub_boxes = quarter_chop(simplfied_poly, factory)
 
-	# 	# Filter out holes that you can't see zoomed out
-	# 	projection.hole_deleter(zoom_params['minimum_hole_size'])
+				for box in sub_boxes
 
-	# 	# Simplify to a percentage of the original
-	# 	simplfied_poly = \
-	# 		projection.polygon_simplifier(zoom_params['simplification'])
+					poly_chop = box.intersection(simplfied_poly[0])
+
+					geo_type = poly_chop.geometry_type.type_name
+
+					if geo_type == "Polygon"
+						
+						feature_array << feature_builder(layer_id, 
+							color_hash[item['properties']['LIQ']], 
+							zoom_level, factory.collection([poly_chop]))
+
+					elsif geo_type == "MultiPolygon"
+
+						for single_poly in poly_chop
+
+							feature_array << feature_builder(layer_id, 
+								color_hash[item['properties']['LIQ']], 
+								zoom_level, factory.collection([single_poly]))
+
+						end
+
+					else
+						puts "SOMETHING FUCKED UP, ITS NEITHER POLY NOR MULTIPOLY"
+					end
+
+				end
+
+			end 
 
 	# 	# Adding to array
 	# 	feature_array << feature_builder(layer_id, 
 	# 			color_hash[item['properties']['LIQ']], 
 	# 			zoom_level, simplfied_poly)
 
-		
+		end
 	end
 end
 

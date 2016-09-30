@@ -15,6 +15,42 @@ end
 
 
 
+
+def quarter_chop(polygon, factory)
+
+	envelope = polygon.envelope
+
+	env_center_coords = envelope.centroid.coordinates
+
+	center_lon = env_center_coords[0]
+	center_lat = env_center_coords[1]
+
+	sub_boxes = []
+
+	for corner in envelope.coordinates[0][0..3]
+
+		corner_lon = corner[0]
+		corner_lat = corner[1]
+
+		point_1 = factory.point(corner_lon, center_lat)
+		point_2 = factory.point(center_lon, center_lat)
+		point_3 = factory.point(center_lon, corner_lat)
+		point_4 = factory.point(corner_lon, corner_lat)
+
+		ring = factory.linear_ring([point_1, point_2, point_3, point_4])
+		box = factory.polygon(ring)
+
+		sub_boxes << box
+
+	end
+
+	sub_boxes
+
+end
+
+
+
+
 class ProjectionFactory
 
 	def initialize(projection, factory)
