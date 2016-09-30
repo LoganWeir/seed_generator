@@ -89,68 +89,51 @@ map_data.each.with_index(1) do |item, index|
 	# # Good for monitoring progress
 	# puts "Starting item ##{index}! Left to go: #{(map_data.length - index)}"
 
-	# Using SF VH polygon that's too big
-	if item['properties']['QUAT_ID'] == 7926
+	# # Using Single SF VH polygon that's too big
+	# if item['properties']['QUAT_ID'] == 7926
 
-		# Convert data into RGeo, then proper factory
-		rgeo_hash = RGeo::GeoJSON.decode(item['geometry'])
-		geo_data_projection = factory.collection([rgeo_hash])
+	# Convert data into RGeo, then proper factory
+	rgeo_hash = RGeo::GeoJSON.decode(item['geometry'])
+	geo_data_projection = factory.collection([rgeo_hash])
 
-		# puts geo_data_projection[0].exterior_ring.num_points
-		# Missing poly = 5896
-		# Richmond, present poly = 2950
-		# so, if num_points > 4000?
+	# puts geo_data_projection[0].exterior_ring.num_points
+	# Missing poly = 5896
+	# Richmond, present poly = 2950
+	# so, if num_points > 4000?
 
-		zoom_hash.each do |zoom_level, zoom_params|
+	zoom_hash.each do |zoom_level, zoom_params|
 
-			projection = ProjectionFactory.new(geo_data_projection, factory)
+		projection = ProjectionFactory.new(geo_data_projection, factory)
 
-			projection.hole_deleter(zoom_params['minimum_hole_size'])
+		projection.hole_deleter(zoom_params['minimum_hole_size'])
 
-			simplfied_poly = \
-				projection.polygon_simplifier(zoom_params['simplification'])
+		simplfied_poly = \
+			projection.polygon_simplifier(zoom_params['simplification'])
 
-			if simplfied_poly[0].exterior_ring.num_points > 4000
+		max_exterior_points = 4000
 
-				sub_boxes = quarter_chop(simplfied_poly, factory)
+		chop_test =  polygon_divider(simplfied_poly, max_exterior_points, factory)
 
-				for box in sub_boxes
+		if chop_test[0] == true
+			
+			for polygon in chop_test[1]
 
-					poly_chop = box.intersection(simplfied_poly[0])
+				feature_array << feature_builder(layer_id, 
+					color_hash[item['properties']['LIQ']], 
+					zoom_level, polygon)
 
-					geo_type = poly_chop.geometry_type.type_name
+			end
 
-					if geo_type == "Polygon"
-						
-						feature_array << feature_builder(layer_id, 
-							color_hash[item['properties']['LIQ']], 
-							zoom_level, factory.collection([poly_chop]))
+		else
 
-					elsif geo_type == "MultiPolygon"
-
-						for single_poly in poly_chop
-
-							feature_array << feature_builder(layer_id, 
-								color_hash[item['properties']['LIQ']], 
-								zoom_level, factory.collection([single_poly]))
-
-						end
-
-					else
-						puts "SOMETHING FUCKED UP, ITS NEITHER POLY NOR MULTIPOLY"
-					end
-
-				end
-
-			end 
-
-	# 	# Adding to array
-	# 	feature_array << feature_builder(layer_id, 
-	# 			color_hash[item['properties']['LIQ']], 
-	# 			zoom_level, simplfied_poly)
+			# Adding to array
+			feature_array << feature_builder(layer_id, 
+				color_hash[item['properties']['LIQ']], 
+				zoom_level, simplfied_poly)
 
 		end
 	end
+	# end
 end
 
 feature_seed += "\t" + "#{feature_array.to_json}" + "\n)\n"
