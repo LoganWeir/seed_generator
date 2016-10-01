@@ -71,7 +71,7 @@ zoom_hash = seed_parameters['zoom_parameters']
 
 
 # Starting the Ruby file and output array
-feature_seed = "LayerFeature.seed(:id,\n"
+feature_seed = "LayerFeature.seed(:feature_id,\n"
 feature_array = []
 
 
@@ -80,6 +80,7 @@ feature_array = []
 # Converts area/distance calculations to meters (75% sure)
 factory = RGeo::Geographic.simple_mercator_factory(:srid => 4326)
 
+test_array = []
 
 # Begin iterating through data
 map_data.each.with_index(1) do |item, index|
@@ -100,9 +101,9 @@ map_data.each.with_index(1) do |item, index|
 		simplfied_poly = \
 			projection.polygon_simplifier(zoom_params['simplification'])
 
-		max_exterior_points = 4000
+		max_exterior_points = 250
 
-		chop_test =  polygon_divider(simplfied_poly, max_exterior_points, factory)
+		chop_test = polygon_divider(simplfied_poly, max_exterior_points, factory)
 
 		if chop_test[0] == true
 			
@@ -110,7 +111,7 @@ map_data.each.with_index(1) do |item, index|
 
 				feature_array << feature_builder(layer_id, 
 					color_hash[item['properties']['LIQ']], 
-					zoom_level, polygon)
+					zoom_level, factory.collection([polygon]))
 
 			end
 
@@ -123,8 +124,8 @@ map_data.each.with_index(1) do |item, index|
 
 		end
 	end
-	# end
 end
+
 
 feature_seed += "\t" + "#{feature_array.to_json}" + "\n)\n"
 

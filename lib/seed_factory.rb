@@ -10,7 +10,9 @@ end
 # Simple hash creator
 def feature_builder(layer_id, fillColor, zoom, projection)
 	feature_hash = {}
-	feature_hash['id'] = rand(1..100000)
+	alpha_num = (('a'..'z').to_a + (0..9).to_a)
+	feature_hash['feature_id'] = \
+		(0..35).map { alpha_num[rand(alpha_num.length)] }.join
 	feature_hash['layer_id'] = layer_id
 	feature_hash['fill_color'] = fillColor
 	feature_hash['zoom_level'] = zoom
