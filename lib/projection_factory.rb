@@ -120,44 +120,210 @@ def quarter_chop(polygon, factory)
 end
 
 
+def polygon_length_checker(polygon_collection_array, max_exterior_points)
+
+	test = 0
+
+	for polygon_collection in polygon_collection_array
+
+		if polygon_collection[0].exterior_ring.num_points > max_exterior_points
+
+			test += 1
+
+		end
+
+	end
+
+	test > 0 ? true : false
+
+end
+
+
+
+
 def polygon_divider(poly_collection, max_exterior_points, factory)
 
 	if poly_collection[0].exterior_ring.num_points > max_exterior_points
 
 		divided_polys = []
 
-		sub_boxes = quarter_chop(poly_collection[0], factory)
+		# First pass at chopping
+		poly_chopper(poly_collection[0], divided_polys, factory)
 
-		for box in sub_boxes
+		length_test = polygon_length_checker(divided_polys, max_exterior_points)
 
-			poly_chop = box.intersection(poly_collection[0])
+		attempts = 0
 
-			geo_type = poly_chop.geometry_type.type_name
+		while length_test == true
 
-			if geo_type == "Polygon"
-				
-				divided_polys << factory.collection([poly_chop])
+			attempts += 1
 
-			elsif geo_type == "MultiPolygon"
+			puts "Attempt ##{attempts}"
 
-				for single_poly in poly_chop
+			new_array = []
 
-					divided_polys << factory.collection([single_poly])
+			for polygon in divided_polys
+
+				if polygon[0].exterior_ring.num_points > max_exterior_points
+
+					poly_chopper(polygon[0], new_array, factory)
+
+				else
+
+					new_array << polygon
 
 				end
-
-			else
-				puts "SOMETHING FUCKED UP, ITS NEITHER POLY NOR MULTIPOLY"
 			end
 
-		end
+			divided_polys = new_array
 
+			length_test = polygon_length_checker(divided_polys, max_exterior_points)
+
+		end
+		
 		return [true, divided_polys]
 
 	else
 
 		return [false]
 
-	end 
+	end
+	
+end
+
+
+
+def poly_chopper(polygon, output_array, factory)
+
+	sub_boxes = quarter_chop(polygon, factory)
+
+	for box in sub_boxes
+
+		poly_chop = box.intersection(polygon)
+
+		geo_type = poly_chop.geometry_type.type_name
+
+		if geo_type == "Polygon"
+	
+			output_array << factory.collection([poly_chop])
+
+		elsif geo_type == "MultiPolygon"
+
+			for single_poly in poly_chop
+
+				output_array << factory.collection([single_poly])
+
+			end
+		end
+	end
+end
+
+
+def total_point_count(poly_collection)
+
+	total_count = 0
+
+	total_count += poly_collection[0].exterior_ring.num_points
+
+	if poly_collection[0].num_interior_rings > 0
+
+		for inner_ring in poly_collection[0].interior_rings do 
+
+			total_count += inner_ring.num_points
+
+		end
+
+	end
+
+	total_count
 
 end
+
+
+
+# def polygon_divider(poly_collection, max_exterior_points, factory)
+
+# 	if poly_collection[0].exterior_ring.num_points > max_exterior_points
+
+# 		divided_polys = []
+
+# 		sub_boxes = quarter_chop(poly_collection[0], factory)
+
+# 		for box in sub_boxes
+
+# 			poly_chop = box.intersection(poly_collection[0])
+
+# 			geo_type = poly_chop.geometry_type.type_name
+
+# 			if geo_type == "Polygon"
+				
+# 				p poly_chop.exterior_ring.num_points
+# 				# divided_polys << factory.collection([poly_chop])
+
+# 			elsif geo_type == "MultiPolygon"
+
+# 				for single_poly in poly_chop
+
+# 					# puts single_poly.exterior_ring.num_points
+
+# 					if single_poly.exterior_ring.num_points > 2000
+
+# 						new_sub_boxes = quarter_chop(single_poly, factory)
+
+# 						for box in new_sub_boxes
+
+# 							new_poly_chop = box.intersection(single_poly)
+
+# 							new_geo_type = new_poly_chop.geometry_type.type_name
+
+# 							if new_geo_type == "Polygon"
+
+# 								if new_poly_chop.exterior_ring.num_points > 1000
+
+# 									divided_polys << factory.collection([new_poly_chop])
+
+# 								end
+
+# 							elsif new_geo_type == "MultiPolygon"
+
+# 								for new_single_poly in new_poly_chop
+
+# 									if new_single_poly.exterior_ring.num_points > 1000
+# 									# puts new_single_poly.geometry_type.type_name
+
+# 										divided_polys << factory.collection([new_single_poly])
+
+# 									end
+# 								end
+
+# 							else
+# 								p "Lol this again"					
+
+# 							end	
+
+# 						end
+
+# 					else
+
+# 						p poly_chop.exterior_ring.num_points
+# 						# divided_polys << factory.collection([single_poly])
+
+# 					end
+
+# 				end
+
+# 			else
+# 				puts "SOMETHING FUCKED UP, ITS NEITHER POLY NOR MULTIPOLY"
+
+# 			end
+# 		end		
+
+# 		return [true, divided_polys]
+
+# 	else
+
+# 		return [false]
+
+# 	end 
+
+# end
