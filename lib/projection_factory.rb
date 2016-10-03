@@ -219,6 +219,7 @@ def poly_chopper(polygon, output_array, factory)
 end
 
 
+
 def total_point_count(poly_collection)
 
 	total_count = 0

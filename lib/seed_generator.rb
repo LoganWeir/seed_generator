@@ -74,13 +74,10 @@ zoom_hash = seed_parameters['zoom_parameters']
 feature_seed = "LayerFeature.seed(:feature_id,\n"
 feature_array = []
 
-
 # Setup RGeo factory for handling geographic data
 # Uses projection for calculations
 # Converts area/distance calculations to meters (75% sure)
 factory = RGeo::Geographic.simple_mercator_factory(:srid => 4326)
-
-test_array = []
 
 # Begin iterating through data
 map_data.each.with_index(1) do |item, index|
@@ -101,29 +98,47 @@ map_data.each.with_index(1) do |item, index|
 		simplfied_poly = \
 			projection.polygon_simplifier(zoom_params['simplification'])
 
-		max_exterior_points = 250
+		# Adding to array
+		feature_array << feature_builder(layer_id, 
+			color_hash[item['properties']['LIQ']], 
+			zoom_level, simplfied_poly)
 
-		chop_test = polygon_divider(simplfied_poly, max_exterior_points, factory)
 
-		if chop_test[0] == true
+		# max_exterior_points = 250
+
+		# chop_test = polygon_divider(simplfied_poly, max_exterior_points, factory)
+
+		# if chop_test[0] == true
 			
-			for polygon in chop_test[1]
+		# 	for polygon in chop_test[1]
 
-				feature_array << feature_builder(layer_id, 
-					color_hash[item['properties']['LIQ']], 
-					zoom_level, factory.collection([polygon]))
+		# 		feature_array << feature_builder(layer_id, 
+		# 			color_hash[item['properties']['LIQ']], 
+		# 			zoom_level, factory.collection([polygon]))
 
-			end
+		# 	end
 
-		else
+		# else
 
-			# Adding to array
-			feature_array << feature_builder(layer_id, 
-				color_hash[item['properties']['LIQ']], 
-				zoom_level, simplfied_poly)
+		# 	# Adding to array
+		# 	feature_array << feature_builder(layer_id, 
+		# 		color_hash[item['properties']['LIQ']], 
+		# 		zoom_level, simplfied_poly)
 
-		end
+		# end
 	end
+end
+
+
+for item in feature_array
+
+	if total_point_count(item['geo_data']) > 900
+
+		puts "Got one!!!"
+		puts item['feature_id']
+
+	end
+
 end
 
 
