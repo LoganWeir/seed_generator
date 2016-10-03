@@ -91,6 +91,10 @@ map_data.each.with_index(1) do |item, index|
 
 	zoom_hash.each do |zoom_level, zoom_params|
 
+	 	# Skip if included in feature skip array
+		next if zoom_params['feature_skip'].include?\
+			(item['properties']['LIQ'])
+
 		# Filters out polygons based on size and fill
 		next if zoom_test(geo_data_projection[0], 
 			zoom_params['size_fill_limits']) == false
