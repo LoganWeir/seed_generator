@@ -91,6 +91,10 @@ map_data.each.with_index(1) do |item, index|
 
 	zoom_hash.each do |zoom_level, zoom_params|
 
+		# Filters out polygons based on size and fill
+		next if zoom_test(geo_data_projection[0], 
+			zoom_params['size_fill_limits']) == false
+
 		projection = ProjectionFactory.new(geo_data_projection, factory)
 
 		projection.hole_deleter(zoom_params['minimum_hole_size'])
