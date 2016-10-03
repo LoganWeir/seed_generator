@@ -82,72 +82,94 @@ factory = RGeo::Geographic.simple_mercator_factory(:srid => 4326)
 # Begin iterating through data
 map_data.each.with_index(1) do |item, index|
 
-	# Good for monitoring progress
-	puts "Starting item ##{index}! Left to go: #{(map_data.length - index)}"
+	# # Good for monitoring progress
+	# puts "Starting item ##{index}! Left to go: #{(map_data.length - index)}"
 
-	# Convert data into RGeo, then proper factory
-	rgeo_hash = RGeo::GeoJSON.decode(item['geometry'])
-	geo_data_projection = factory.collection([rgeo_hash])
+	# 7926
 
-	zoom_hash.each do |zoom_level, zoom_params|
+	if item['properties']['QUAT_ID'] == 7926
 
-	 	# Skip if included in feature skip array
-		next if zoom_params['feature_skip'].include?\
-			(item['properties']['LIQ'])
-
-		# Filters out polygons based on size and fill
-		next if zoom_test(geo_data_projection[0], 
-			zoom_params['size_fill_limits']) == false
-
-		projection = ProjectionFactory.new(geo_data_projection, factory)
-
-		projection.hole_deleter(zoom_params['minimum_hole_size'])
-
-		simplfied_poly = \
-			projection.polygon_simplifier(zoom_params['simplification'])
-
-		# Adding to array
-		feature_array << feature_builder(layer_id, 
-			color_hash[item['properties']['LIQ']], 
-			zoom_level, simplfied_poly)
+		# Convert data into RGeo, then proper factory
+		rgeo_hash = RGeo::GeoJSON.decode(item['geometry'])
+		geo_data_projection = factory.collection([rgeo_hash])
 
 
-		# max_exterior_points = 250
 
-		# chop_test = polygon_divider(simplfied_poly, max_exterior_points, factory)
+		zoom_hash.each do |zoom_level, zoom_params|
 
-		# if chop_test[0] == true
-			
-		# 	for polygon in chop_test[1]
+		 	# Skip if included in feature skip array
+			next if zoom_params['feature_skip'].include?\
+				(item['properties']['LIQ'])
 
-		# 		feature_array << feature_builder(layer_id, 
-		# 			color_hash[item['properties']['LIQ']], 
-		# 			zoom_level, factory.collection([polygon]))
+			# Filters out polygons based on size and fill
+			next if zoom_test(geo_data_projection[0], 
+				zoom_params['size_fill_limits']) == false
 
-		# 	end
+			projection = ProjectionFactory.new(geo_data_projection, factory)
 
-		# else
+			projection.hole_deleter(zoom_params['minimum_hole_size'])
 
-		# 	# Adding to array
-		# 	feature_array << feature_builder(layer_id, 
-		# 		color_hash[item['properties']['LIQ']], 
-		# 		zoom_level, simplfied_poly)
+			simplfied_poly = \
+				projection.polygon_simplifier(zoom_params['simplification'])
 
-		# end
+			max_exterior_points = 250
+
+			chop_test = polygon_divider(simplfied_poly, max_exterior_points, factory)
+
+			if chop_test[0] == true
+				
+				for polygon in chop_test[1]
+
+					# feature_array << feature_builder(layer_id, 
+					# 	color_hash[item['properties']['LIQ']], 
+					# 	zoom_level, polygon)
+
+					if polygon.intersects?(factory.point(-122.397822, 37.799161))
+
+						p "original size: #{total_point_count(polygon)}"
+
+						new_simple = polygon[0].simplify(0)
+
+						p "new size: #{total_point_count(factory.collection([new_simple]))}"
+
+						feature_array << feature_builder(layer_id, 
+							color_hash[item['properties']['LIQ']], 
+							zoom_level, factory.collection([new_simple]))
+
+					else
+
+						feature_array << feature_builder(layer_id, 
+							color_hash[item['properties']['LIQ']], 
+							zoom_level, polygon)
+
+					end
+
+				end
+
+			else
+
+				# Adding to array
+				feature_array << feature_builder(layer_id, 
+					color_hash[item['properties']['LIQ']], 
+					zoom_level, simplfied_poly)
+
+			end
+
+		end
 	end
 end
 
 
-for item in feature_array
+# for item in feature_array
 
-	if total_point_count(item['geo_data']) > 900
+# 	if total_point_count(item['geo_data']) > 900
 
-		puts "Got one!!!"
-		puts item['feature_id']
+# 		puts "Got one!!!"
+# 		puts item['feature_id']
 
-	end
+# 	end
 
-end
+# end
 
 
 feature_seed += "\t" + "#{feature_array.to_json}" + "\n)\n"

@@ -8,17 +8,17 @@
 	"VH": "#a50f15"
 	},
 	"zoom_parameters": {
-		// TESTED
-		"8": {
-			"feature_skip": [],
-			"minimum_hole_size": 500000.0,
-			"simplification": 0.05,
-			"size_fill_limits": {
-				"0.5": 1000000,
-				"0.25": 3000000,
-				"0": 5000000
-			}
-		}
+		// // TESTED
+		// "8": {
+		// 	"feature_skip": [],
+		// 	"minimum_hole_size": 500000.0,
+		// 	"simplification": 0.05,
+		// 	"size_fill_limits": {
+		// 		"0.5": 1000000,
+		// 		"0.25": 3000000,
+		// 		"0": 5000000
+		// 	}
+		// }
 		// "9": {
 		// 	"feature_skip": [],
 		// 	"minimum_hole_size": 76215.0,
@@ -59,15 +59,15 @@
 		// 		"0": 19531.25
 		// 	}
 		// },
-		// "13": {
-		// 	"feature_skip": [],
-		// 	"minimum_hole_size": 0,
-		// 	"simplification": 1,
-		// 	"size_fill_limits": {
-		// 		"0": 0.5,
-		// 		"0": 0.25,
-		// 		"0": 0
-		// 	}
-		// }
+		"13": {
+			"feature_skip": [],
+			"minimum_hole_size": 0,
+			"simplification": 1,
+			"size_fill_limits": {
+				"0": 0.5,
+				"0": 0.25,
+				"0": 0
+			}
+		}
 	}
 }
