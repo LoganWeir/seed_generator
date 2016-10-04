@@ -79,6 +79,12 @@ feature_array = []
 # Converts area/distance calculations to meters (75% sure)
 factory = RGeo::Geographic.simple_mercator_factory(:srid => 4326)
 
+other_factory = RGeo::Geographic.spherical_factory(:srid => 4326)
+
+test_array = []
+
+single_broken = []
+
 # Begin iterating through data
 map_data.each.with_index(1) do |item, index|
 
@@ -87,13 +93,13 @@ map_data.each.with_index(1) do |item, index|
 
 	# 7926
 
+	# if item['properties']['QUAT_ID'] == 7926 || item['properties']['QUAT_ID'] == 7976
+
 	if item['properties']['QUAT_ID'] == 7926
 
 		# Convert data into RGeo, then proper factory
 		rgeo_hash = RGeo::GeoJSON.decode(item['geometry'])
 		geo_data_projection = factory.collection([rgeo_hash])
-
-
 
 		zoom_hash.each do |zoom_level, zoom_params|
 
@@ -112,7 +118,14 @@ map_data.each.with_index(1) do |item, index|
 			simplfied_poly = \
 				projection.polygon_simplifier(zoom_params['simplification'])
 
-			max_exterior_points = 250
+			# # Adding to array
+			# feature_array << feature_builder(layer_id, 
+			# 	color_hash[item['properties']['LIQ']], 
+			# 	zoom_level, simplfied_poly)
+
+			# test_array << simplfied_poly
+
+			max_exterior_points = 100
 
 			chop_test = polygon_divider(simplfied_poly, max_exterior_points, factory)
 
@@ -124,34 +137,46 @@ map_data.each.with_index(1) do |item, index|
 					# 	color_hash[item['properties']['LIQ']], 
 					# 	zoom_level, polygon)
 
-					if polygon.intersects?(factory.point(-122.397822, 37.799161))
+					# if polygon.intersects?(factory.point(-122.397822, 37.799161))
 
-						p "original size: #{total_point_count(polygon)}"
+					# Smaller dividing, point at exploritorium
+					if polygon.intersects?(factory.point(-122.398945, 37.801167))
 
-						new_simple = polygon[0].simplify(0)
+						# feature_array << feature_builder(layer_id, 
+						# 	color_hash[item['properties']['LIQ']], 
+						# 	zoom_level, polygon)
 
-						p "new size: #{total_point_count(factory.collection([new_simple]))}"
+						single_broken << polygon
 
-						feature_array << feature_builder(layer_id, 
-							color_hash[item['properties']['LIQ']], 
-							zoom_level, factory.collection([new_simple]))
-
-					else
-
-						feature_array << feature_builder(layer_id, 
-							color_hash[item['properties']['LIQ']], 
-							zoom_level, polygon)
 
 					end
 
+					# 	p "original size: #{total_point_count(polygon)}"
+
+					# 	new_simple = polygon[0].simplify(0)
+
+					# 	p "new size: #{total_point_count(factory.collection([new_simple]))}"
+
+					# 	feature_array << feature_builder(layer_id, 
+					# 		color_hash[item['properties']['LIQ']], 
+					# 		zoom_level, factory.collection([new_simple]))
+
+					# else
+
+					# 	feature_array << feature_builder(layer_id, 
+					# 		color_hash[item['properties']['LIQ']], 
+					# 		zoom_level, polygon)
+
+					# end
+
 				end
 
-			else
+			# else
 
-				# Adding to array
-				feature_array << feature_builder(layer_id, 
-					color_hash[item['properties']['LIQ']], 
-					zoom_level, simplfied_poly)
+			# 	# Adding to array
+			# 	feature_array << feature_builder(layer_id, 
+			# 		color_hash[item['properties']['LIQ']], 
+			# 		zoom_level, simplfied_poly)
 
 			end
 
@@ -160,16 +185,90 @@ map_data.each.with_index(1) do |item, index|
 end
 
 
-# for item in feature_array
 
-# 	if total_point_count(item['geo_data']) > 900
+# Comparing Raw Polygons, one bad one good
+# soma_poly = test_array[0]
+# first = soma_poly[0].exterior_ring.coordinates[0]
+# last = soma_poly[0].exterior_ring.coordinates[-1]
+# p first == last
+# richmond_poly = test_array[1]
+# p richmond_poly[0].num_interior_rings
 
-# 		puts "Got one!!!"
-# 		puts item['feature_id']
 
-# 	end
+# Analyzing tiny, broken chunk
+# p total_point_count(single_broken[0])
 
-# end
+# p single_broken[0]
+
+new_broken = polygon_divider(single_broken[0], 30, factory)
+
+
+# 37.801874, -122.398307
+
+geometries = []
+
+for item in new_broken[1]
+
+# RGeo::Geographic.spherical_factory(srid: 4326)
+
+	# puts item.cast(:factory = )
+
+	p RGeo::Feature.cast(item, :factory => other_factory)
+
+	# if item.intersects?(factory.point(-122.398307, 37.801874))
+
+	# 	# geometries << item[0]
+
+	# 	# unique_len = item[0].exterior_ring.coordinates.uniq.length
+
+	# 	# normal_len = item[0].exterior_ring.coordinates.length
+
+	# 	p item[0].inspect
+
+	# 	# puts normal_len - unique_len
+
+	# 	# bad_poly_ring = item[0].exterior_ring.coordinates
+
+	# 	# # p bad_poly_ring.length
+
+	# 	# bad_poly_ring.delete_at(1)
+
+	# 	# # p bad_poly_ring.length
+
+
+	# 	# ring = factory.linear_ring(bad_poly_ring)
+
+	# 	# new_poly = factory.polygon(ring)
+
+	# 	# puts new_poly
+
+	# 	# feature_array << feature_builder(layer_id, 
+	# 	# 	"#a50f15", 
+	# 	# 	"13", item)
+
+	# 	# for coord_pair in item[0].exterior_ring.coordinates
+
+	# 	# 	point = factory.point(coord_pair[0], coord_pair[1])
+
+	# 	# 	geometries << point
+	# 	# 	# p coord_pair[1].to_s.length
+
+	# 	# end
+
+	# 	# pp(RGeo::GeoJSON.encode(item).to_json)
+
+	# end
+
+end
+
+# new_collection = factory.collection(geometries)
+
+# puts RGeo::GeoJSON.encode(new_collection).to_json
+
+
+# feature_array << feature_builder(layer_id, 
+# 	"#a50f15", 
+# 	"13", item)
 
 
 feature_seed += "\t" + "#{feature_array.to_json}" + "\n)\n"
