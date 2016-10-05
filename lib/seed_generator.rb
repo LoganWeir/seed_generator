@@ -106,47 +106,40 @@ map_data.each.with_index(1) do |item, index|
 		simplfied_poly = \
 			projection.polygon_simplifier(zoom_params['simplification'])
 
-		# Adding to array
-		feature_array << feature_builder(layer_id, 
-			color_hash[item['properties']['LIQ']], 
-			zoom_level, simplfied_poly)
+		if zoom_params['poly_divide_limit']
 
+			chop_test = polygon_divider(simplfied_poly, 
+				zoom_params['poly_divide_limit'], factory)
 
-		# max_exterior_points = 250
+			if chop_test[0] == true
+				
+				for polygon in chop_test[1]
 
-		# chop_test = polygon_divider(simplfied_poly, max_exterior_points, factory)
+					# Adding to array
+					feature_array << feature_builder(layer_id, 
+						color_hash[item['properties']['LIQ']], 
+						zoom_level, factory.collection([polygon]))
 
-		# if chop_test[0] == true
-			
-		# 	for polygon in chop_test[1]
+				end
 
-		# 		feature_array << feature_builder(layer_id, 
-		# 			color_hash[item['properties']['LIQ']], 
-		# 			zoom_level, factory.collection([polygon]))
+			else
 
-		# 	end
+				# Adding to array
+				feature_array << feature_builder(layer_id, 
+					color_hash[item['properties']['LIQ']], 
+					zoom_level, simplfied_poly)
 
-		# else
+			end
 
-		# 	# Adding to array
-		# 	feature_array << feature_builder(layer_id, 
-		# 		color_hash[item['properties']['LIQ']], 
-		# 		zoom_level, simplfied_poly)
+		else
 
-		# end
+			# Adding to array
+			feature_array << feature_builder(layer_id, 
+				color_hash[item['properties']['LIQ']], 
+				zoom_level, simplfied_poly)
+
+		end
 	end
-end
-
-
-for item in feature_array
-
-	if total_point_count(item['geo_data']) > 900
-
-		puts "Got one!!!"
-		puts item['feature_id']
-
-	end
-
 end
 
 
