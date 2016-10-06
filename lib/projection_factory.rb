@@ -156,9 +156,9 @@ def polygon_divider(poly_collection, max_exterior_points, factory)
 
 		while length_test == true
 
-			attempts += 1
-
-			puts "Attempt ##{attempts}"
+			# # Used for measuring attempts
+			# attempts += 1
+			# puts "Attempt ##{attempts}"
 
 			new_array = []
 
