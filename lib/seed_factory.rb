@@ -1,7 +1,7 @@
 # Retuns layer as string and the generated ID
 def layer_builder(layer_name)
 	layer_hash = {}
-	layer_hash['name'] = layer_name || "No Layer Name"
+	layer_hash['name'] = layer_name || "no_layer_name"
 	layer_hash['id'] = rand(1..100000)
 	layer_seed = "Layer.seed(:id,\n" + "\t#{layer_hash.to_json}" + "\n)\n"
 	return [layer_seed, layer_hash['id']]

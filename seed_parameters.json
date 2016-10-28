@@ -22,34 +22,34 @@
 		"9": {
 			"feature_skip": [],
 			"poly_divide_limit": null,
-			"minimum_hole_size": 400000.0,
+			"minimum_hole_size": 500000.0,
 			"simplification": 0.1,
 			"size_fill_limits": {
-				"0.5": 800000,
-				"0.25": 2500000, 
-				"0": 4000000
+				"0.5": 1000000,
+				"0.25": 3000000, 
+				"0": 5000000
 			}
 		},
 		"10": {
 			"feature_skip": [],
 			"poly_divide_limit": 1000,
-			"minimum_hole_size": 65000.0,
-			"simplification": 0.125,
+			"minimum_hole_size": 150000.0,
+			"simplification": 0.15,
 			"size_fill_limits": {
-				"0.5": 250000,
-				"0.25": 500000,
-				"0": 1000000
+				"0.5": 625000,
+				"0.25": 1000000,
+				"0": 2250000
 			}
 		},
 		"11": {
 			"feature_skip": [],
 			"poly_divide_limit": 1000,
-			"minimum_hole_size": 20000.0,
-			"simplification": 0.15,
+			"minimum_hole_size": 100000.0,
+			"simplification": 0.20,
 			"size_fill_limits": {
-				"0.5": 40000,
-				"0.25": 125000,
-				"0": 200000
+				"0.5": 200000,
+				"0.25": 700000,
+				"0": 1000000
 			}
 		},
 		"12": {
