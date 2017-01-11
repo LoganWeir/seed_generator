@@ -1,11 +1,19 @@
 {
 	"filter_parameters": ["", null, "NM", "W", "VL"],
 	"color_parameters" : {
-	"VL": "#fee5d9",
-	"L": "#fcae91",
-	"M": "#fb6a4a",
-	"H": "#de2d26",
-	"VH": "#a50f15"
+		"VL": "#fee5d9",
+		"L": "#fcae91",
+		"M": "#fb6a4a",
+		"H": "#de2d26",
+		"VH": "#a50f15"
+	},
+	"popup_parameters" : {
+		"title": "Liquifaction Potential",
+		"VL": "Very Low",
+		"L": "Low",
+		"M": "Medium",
+		"H": "High",
+		"VH": "Very High"
 	},
 	"zoom_parameters": {
 		"8": {

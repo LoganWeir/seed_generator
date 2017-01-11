@@ -13,7 +13,6 @@ require 'seed_factory'
 require 'projection_factory'
 
 
-
 # Set options outside of ARGV
 opts = Trollop::options do
   opt :output_name, "Output Name", default: nil, 
@@ -40,13 +39,16 @@ ARGV.each do | item |
 	end
 end
 
+# Final output
+final_output = {}
 
 # Only produce output file if asked for
 if opts[:output_name].nil?
 	puts "No Seed Output"
 	output = nil
 else
-	path_file = 'output/' + opts[:output_name]
+	# Adding master hash for json output
+	path_file = 'output/' + opts[:output_name]	
 	output = open(path_file, 'w')
 end
 
@@ -55,8 +57,9 @@ end
 if opts[:layer_id] == nil
 	layer = layer_builder(opts[:layer_name])
 	layer_id = layer[1]
-	# Write if outputting
-	output.write(layer[0]) unless output.nil?
+	# Write if outputting MODIFIED TO JSON
+	final_output['layer_data'] = layer[0]
+	# output.write(layer[0]) unless output.nil?
 	puts ">>>>>\nLayer ID = #{layer_id}\n<<<<<"
 else
 	# Doesn't build layer seed, only feature
@@ -66,18 +69,24 @@ end
 
 
 color_hash = seed_parameters['color_parameters']
+popup_hash = seed_parameters['popup_parameters']
 
 zoom_hash = seed_parameters['zoom_parameters']
 
 
 # Starting the Ruby file and output array
-feature_seed = "LayerFeature.seed(:feature_id,\n"
+# Don't need seed_file format when outputting json
+# feature_seed = "LayerFeature.seed(:feature_id,\n"
 feature_array = []
 
 # Setup RGeo factory for handling geographic data
 # Uses projection for calculations
 # Converts area/distance calculations to meters (75% sure)
 factory = RGeo::Geographic.simple_mercator_factory(:srid => 4326)
+
+
+test_data = map_data[0..100]
+
 
 # Begin iterating through data
 map_data.each.with_index(1) do |item, index|
@@ -99,9 +108,19 @@ map_data.each.with_index(1) do |item, index|
 		next if zoom_test(geo_data_projection[0], 
 			zoom_params['size_fill_limits']) == false
 
+		# Create poly properties hash
+		poly_params = {}
+		poly_params['id'] = layer_id
+		poly_params['title'] = popup_hash['title']
+		poly_params['description'] = popup_hash[item['properties']['LIQ']]
+		poly_params['color'] = color_hash[item['properties']['LIQ']]
+		poly_params['zoom'] = zoom_level
+
+
 		projection = ProjectionFactory.new(geo_data_projection, factory)
 
 		projection.hole_deleter(zoom_params['minimum_hole_size'])
+
 
 		simplfied_poly = \
 			projection.polygon_simplifier(zoom_params['simplification'])
@@ -116,36 +135,37 @@ map_data.each.with_index(1) do |item, index|
 				for polygon in chop_test[1]
 
 					# Adding to array
-					feature_array << feature_builder(layer_id, 
-						color_hash[item['properties']['LIQ']], 
-						zoom_level, factory.collection([polygon]))
+					feature_array << feature_builder(poly_params, 
+						factory.collection([polygon]))
 
 				end
 
 			else
 
 				# Adding to array
-				feature_array << feature_builder(layer_id, 
-					color_hash[item['properties']['LIQ']], 
-					zoom_level, simplfied_poly)
+				feature_array << feature_builder(poly_params,
+					simplfied_poly)
 
 			end
 
 		else
 
 			# Adding to array
-			feature_array << feature_builder(layer_id, 
-				color_hash[item['properties']['LIQ']], 
-				zoom_level, simplfied_poly)
+			feature_array << feature_builder(poly_params, 
+				simplfied_poly)
 
 		end
 	end
 end
 
 
-feature_seed += "\t" + "#{feature_array.to_json}" + "\n)\n"
+# feature_seed += "\t" + "#{feature_array.to_json}" + "\n)\n"
 
-output.write(feature_seed) unless output.nil?
+puts "Total feature count: #{feature_array.length}"
+
+final_output['feature_data'] = feature_array
+
+output.write(final_output.to_json) unless output.nil?
 
 output.close unless output.nil?
 
